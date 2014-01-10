@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+
+<!-- Parameters set by the user. All user input variables. -->
+
+<geometry>
+    <!-- Size of the simulation domain. This domain is [0,lx] x [0,ly] x [0,lz].
+         The gravity is in the direction of the -z axis. -->
+    <simulationDomain>
+        <lx> 6.0 </lx>
+        <ly> 6.0 </ly>
+        <lz> 10.0 </lz>
+    </simulationDomain>
+    <!-- The radius of the orifice from which the water jet emerges. -->
+    <radius> 1.0 </radius>
+    <!-- The height and thickness of the orifice from which the jet emerges. -->
+    <orificeHeight> 1.0 </orificeHeight>
+    <orificeThickness> 0.1 </orificeThickness>
+    <!-- The initial "height" of the water in the orifice. -->
+    <initialFluidHeight> 0.9 </initialFluidHeight>
+    <!-- The initial height of the water in the water pool beneath the orifice. -->
+    <waterPoolHeight> 5.0 </waterPoolHeight>
+</geometry>
+
+<fluid>
+    <!-- Fluid density. -->
+    <rho> 1000.0 </rho>
+    <!-- Reynolds number: Re = inlet_velocity * orifice_radius / kinematic_viscosity. -->
+    <Re> 1000.0 </Re>
+    <!-- Weber number: We = rho * inlet_velocity^2 * orifice_radius / surface_tension. -->
+    <We> 1.37 </We>
+    <!-- Bond number: Bo = rho * gravity * orifice_radius^2 / surface_tension. -->
+    <Bo> 13.5 </Bo>
+    <!-- Contact angle in degrees. If the contact angle is negative, then the
+         contact angle algorithm is deactivated. For non-wetting cases use
+         a contact angle between 90 and 180 degrees. For wetting cases use
+         a contact angle between 0 and 90 degrees. -->
+    <contactAngle> -1.0 </contactAngle>
+</fluid>
+
+<numerics>
+    <!-- Total number of lattice nodes in the radius of the orifice. -->
+    <resolution> 10 </resolution>
+    <!-- Lattice velocity: uLB = inlet_velocity * dt / dx. From this, the time step is calculated. -->
+    <uLB> 0.002 </uLB>
+    <!-- Inlet jet velocity at the orifice. -->
+    <inletVelocity> 1.0 </inletVelocity>
+    <!-- Maximum number of iterations. -->
+    <maxIter> 1000000 </maxIter>
+    <!-- Smagorinsky LES model parameter. -->
+    <cSmago> 0.22 </cSmago>
+    <!-- Use a model where bubbles have an internal pressure relative to their volume, or not. -->
+    <useBubblePressureModel> true </useBubblePressureModel>
+    <!-- Parameter of the bubble pressure model. The bubbleVolumeRatio must be >= 1.0. -->
+    <bubbleVolumeRatio> 1.0 </bubbleVolumeRatio>
+    <!-- Parameters of the bubble pressure model:
+         If alpha or beta < 0 then: bubble_pressure = reference_pressure * reference_volume / current_volume.
+         Else: bubble_pressure = reference_pressure * [1 + alpha * (1 - current_volume/reference_volume)^beta].
+    -->
+    <alpha> 1.0 </alpha>
+    <beta> 1.0 </beta>
+</numerics>
+
+<output>
+    <!-- Number of iterations for terminal output. -->
+    <statIter> 20 </statIter>
+    <!-- Number of iterations for disk output. -->
+    <outIter> 20 </outIter>
+</output>
+
