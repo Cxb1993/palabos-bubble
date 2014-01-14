@@ -262,14 +262,14 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
 
     typedef TriangleSet<T>::Triangle Triangle;
     std::vector<Triangle> triangles;
-    isoSurfaceMarchingCube(triangles, *smoothVF, isoLevels, smoothVF->getBoundingBox().enlarge(-4));
+    isoSurfaceMarchingCube(triangles, *smoothVF, isoLevels, smoothVF->getBoundingBox().enlarge(0));
     {
         TriangleSet<T> triangleSet(triangles);
         triangleSet.scale(param.dx);
         triangleSet.writeBinarySTL(createFileName(outDir + "smoothedInterface_", iter, PADDING)+".stl");
     }
     triangles.clear();
-    isoSurfaceMarchingCube(triangles, fields->volumeFraction, isoLevels, fields->volumeFraction.getBoundingBox().enlarge(-4));
+    isoSurfaceMarchingCube(triangles, fields->volumeFraction, isoLevels, fields->volumeFraction.getBoundingBox().enlarge(0));
     {
         TriangleSet<T> triangleSet(triangles);
         triangleSet.scale(param.dx);
@@ -284,6 +284,7 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
     //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
     vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
     vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
+    vtkOut.writeData<float>(*copyConvert<int,double>(fields->flag, fields->flag.getBoundingBox()), "flag", 1.0);
     //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
     //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
     if (tagMatrix != 0) {

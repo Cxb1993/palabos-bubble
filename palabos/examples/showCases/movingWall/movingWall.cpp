@@ -464,7 +464,7 @@ int main(int argc, char* argv[])
             pcout << std::endl;
         }
 
-        lattice->executeInternalProcessors(); // Execute all processors and communicate appropriatelly.
+        lattice->executeInternalProcessors(); // Execute all processors and communicate appropriately.
 
         // Immersed walls algorithm.
 

@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+
+<!-- Parameters set by the user. -->
+
+<geometry>
+    <!-- Size of the simulation domain. This domain is [0,lx] x [0,ly] x [0,lz].
+         The gravity is in the direction of the -z axis. -->
+    <simulationDomain>
+        <lx> 1.0 </lx>
+        <ly> 1.0 </ly>
+        <lz> 1.0 </lz>
+    </simulationDomain>
+    <!-- Initial height of the pool of fluid.
+         The fluid pool is the domain [0,lx] x [0.ly] x [0, fluidPoolHeight]. -->
+    <fluidPoolHeight> 0.7 </fluidPoolHeight>
+    <!-- The bubble is initially represented by a sphere. This sphere must be contained
+         in the fluid pool. The radius can be 0.0 for no bubble. -->
+    <sphere>
+        <center> 0.5 0.5 0.4 </center>
+        <radius> 0.15 </radius>
+    </sphere>
+</geometry>
+
+<fluid>
+    <!-- Fluid density. -->
+    <rho> 1000.0 </rho>
+    <!-- Jesus Number: Je = sigma / (rho * g * L^2).
+         From this, surface tension is calculated in the code.
+         If Je = 0, then the surface tension is not modeled. -->
+    <Je> 0.003264890 </Je>
+    <!-- Galilei Number: Ga = g * L^3 / nu^2.
+         From this, kinematic viscosity is calculated in the code.
+         Gravity is always 1 in dimensionless units
+         (because it defines the time scale), so Ga cannot be 0. -->
+    <Ga> 1063607063.40 </Ga>
+    <!-- Contact angle in degrees. If the contact angle is negative, then the
+         contact angle algorithm is deactivated. For non-wetting cases use
+         a contact angle between 90 and 180 degrees. For wetting cases use
+         a contact angle between 0 and 90 degrees. -->
+    <contactAngle> -1.0 </contactAngle>
+</fluid>
+
+<numerics>
+    <!-- Total number of lattice nodes in the unit length. -->
+    <resolution> 49 </resolution>
+    <!-- Lattice velocity: dt / dx. -->
+    <uLB> 0.027 </uLB>
+    <!-- Maximum number of iterations. -->
+    <maxIter> 1000000 </maxIter>
+    <!-- Smagorinsky LES model parameter. -->
+    <cSmago> 0.14 </cSmago>
+    <!-- Freeze the ambient space or not. If set to true, be careful so that
+         the ambient space volume is bigger than the initial bubble volume. -->
+    <freezeLargestBubble> true </freezeLargestBubble>
+    <!-- Parameter of the bubble pressure model. The bubbleVolumeRatio must be >= 1.0. -->
+    <bubbleVolumeRatio> 1.5 </bubbleVolumeRatio>
+    <!-- Parameters of the bubble pressure model:
+         If alpha or beta < 0 then: bubble_pressure = reference_pressure * reference_volume / current_volume.
+         Else: bubble_pressure = reference_pressure * [1 + alpha * (1 - current_volume/reference_volume)^beta].
+    -->
+    <alpha> -1.0 </alpha>
+    <beta> -1.0 </beta>
+</numerics>
+
+<output>
+    <!-- Number of iterations for terminal output. -->
+    <statIter> 10 </statIter>
+    <!-- Number of iterations for disk output. -->
+    <outIter> 10 </outIter>
+</output>
+

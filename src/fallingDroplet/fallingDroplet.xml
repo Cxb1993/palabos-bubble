@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+
+<!-- Parameters set by the user. -->
+
+<geometry>
+    <!-- Size of the simulation domain. This domain is [0,lx] x [0,ly] x [0,lz].
+         The gravity is in the direction of the -z axis. -->
+    <simulationDomain>
+        <lx> 1.0 </lx>
+        <ly> 1.0 </ly>
+        <lz> 1.5 </lz>
+    </simulationDomain>
+    <!-- Initial height of the pool of fluid.
+         The fluid pool is the domain [0,lx] x [0.ly] x [0, fluidPoolHeight].
+         It can be 0.0 for no fluid pool. -->
+    <fluidPoolHeight> 0.5 </fluidPoolHeight>
+    <!-- The droplet is initially represented by a sphere. The radius can be 0.0 for no droplet. -->
+    <sphere>
+        <center> 0.5 0.5 1.25 </center>
+        <radius> 0.125 </radius>
+    </sphere>
+</geometry>
+
+<fluid>
+    <!-- Fluid density. -->
+    <rho> 1000.0 </rho>
+    <!-- The Reynolds and Galilei numbers are used to determine the initial velocity
+         of the droplet (U), the kinematic viscosity of the fluid (nu), and the
+         acceleration of gravity (g). The next convention is followed:
+         ** If Re > 0 and Ga > 0:
+            U = 1 (in dimensionless units) which defines the time scale,
+            nu = U * L / Re,
+            g = Ga * nu^2 / L^3
+         ** If Re > 0 and Ga <= 0:
+            U = 1 (in dimensionless units) which defines the time scale,
+            nu = U * L / Re,
+            g = 0 (no gravity in the model).
+         ** If Re <= 0 and Ga > 0:
+            U = 0 (no initial velocity),
+            g = 1 (in dimensionless units) which defines the time scale,
+            nu = sqrt(g * L^3 / Ga);
+         ** If Re <= 0 and Ga <= 0:
+            U = 0 (no initial velocity),
+            g = 0 (no gravity in the model),
+            nu = 1 (in dimensionless units) which defines the time scale. -->
+    <!-- Reynolds Number: Re = U * L / nu. -->
+    <Re> 2000.0 </Re>
+    <!-- Galilei Number: Ga = g * L^3 / nu^2. -->
+    <Ga> 78400000000.0 </Ga>
+    <!-- Laplace Number: La = sigma * rho * L / mu^2.
+         From this, surface tension is computed in the code.
+         If La = 0, then surface tension is not included in the model. -->
+    <La> 14560000.0 </La>
+    <!-- Contact angle in degrees. If the contact angle is negative, then the
+         contact angle algorithm is deactivated. For non-wetting cases use
+         a contact angle between 90 and 180 degrees. For wetting cases use
+         a contact angle between 0 and 90 degrees. -->
+    <contactAngle> -1.0 </contactAngle>
+</fluid>
+
+<numerics>
+    <!-- Total number of lattice nodes in the unit length. -->
+    <resolution> 60 </resolution>
+    <!-- Lattice velocity: dt / dx. -->
+    <uLB> 0.0002 </uLB>
+    <!-- Maximum number of iterations. -->
+    <maxIter> 1000000 </maxIter>
+    <!-- Smagorinsky LES model parameter. -->
+    <cSmago> 0.14 </cSmago>
+    <!-- Use a model where bubbles have an internal pressure relative to their volume, or not. -->
+    <useBubblePressureModel> false </useBubblePressureModel>
+    <!-- If a bubble pressure model is used freeze the ambient space or not. -->
+    <freezeLargestBubble> true </freezeLargestBubble>
+    <!-- Parameter of the bubble pressure model. The bubbleVolumeRatio must be >= 1.0. -->
+    <bubbleVolumeRatio> 1.0 </bubbleVolumeRatio>
+    <!-- Parameters of the bubble pressure model:
+         If alpha or beta < 0 then: bubble_pressure = reference_pressure * reference_volume / current_volume.
+         Else: bubble_pressure = reference_pressure * [1 + alpha * (1 - current_volume/reference_volume)^beta].
+    -->
+    <alpha> -1.0 </alpha>
+    <beta> -1.0 </beta>
+</numerics>
+
+<output>
+    <!-- Number of iterations for terminal output. -->
+    <statIter> 20 </statIter>
+    <!-- Number of iterations for disk output. -->
+    <outIter> 20 </outIter>
+</output>
+

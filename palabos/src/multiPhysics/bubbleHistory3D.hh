@@ -92,6 +92,26 @@ void BubbleHistory3D<T>::freeze() {
 }
 
 template<typename T>
+void BubbleHistory3D<T>::freezeLargestBubble() {
+    typename std::map<plint,BubbleInfo3D>::iterator it;
+
+    T biggestVolume = -1.0;
+    plint largestBubbleID = -1;
+    for (it = bubbles.begin(); it!=bubbles.end(); ++it) {
+        plint bubbleID = it->first;
+        T volume = it->second.getVolume();
+        if (volume > biggestVolume) {
+            biggestVolume = volume;
+            largestBubbleID = bubbleID;
+        }
+    }
+
+    bubbles[largestBubbleID].freeze();
+    PLB_ASSERT( (plint)fullBubbleRecord.size()>largestBubbleID );
+    fullBubbleRecord[largestBubbleID].frozen = true;
+}
+
+template<typename T>
 void BubbleHistory3D<T>::timeHistoryLog(std::string fName) {
     plb_ofstream ofile(fName.c_str());
     std::map<plint, std::pair<std::vector<plint>,std::vector<plint> > >::const_iterator

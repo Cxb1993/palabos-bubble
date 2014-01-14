@@ -53,6 +53,7 @@ public:
     // for all bubbles.
     void updateBubblePressure(MultiScalarField3D<T>& outsideDensity, T rhoEmpty, T alpha = (T) -1, T beta = (T) -1);
     void freeze();
+    void freezeLargestBubble();
     void timeHistoryLog(std::string fName);
     void fullBubbleLog(std::string fName);
     std::map<plint,BubbleInfo3D> const& getBubbles() const { return bubbles; }
