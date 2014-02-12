@@ -15,7 +15,7 @@
 #                optimFlags   = -O -finline-functions
 
 # Leading directory of the Palabos source code
-palabosRoot  = ../palabos
+palabosRoot  = ../../palabos
 projectFiles = movingObject.cpp
 
 # Set optimization flags on/off
