@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+
+<!-- Parameters set by the user. -->
+
+<geometry>
+    <!-- Size of the simulation domain. This domain is [0,lx] x [0,ly] x [0,lz].
+         The gravity is in the direction of the -z axis. -->
+    <simulationDomain>
+        <lx> 1.0 </lx>
+        <ly> 1.0 </ly>
+        <lz> 1.0 </lz>
+    </simulationDomain>
+    <!-- Initial height of the pool of fluid.
+         The fluid pool is the domain [0,lx] x [0.ly] x [0, fluidPoolHeight]. -->
+    <fluidPoolHeight> 0.55 </fluidPoolHeight>
+    <!-- File with the initial geometry of the solid moving surface. -->
+    <fileName> object.stl </fileName>
+    <!-- The reference velocity used in the non-dimensionalization of the problem
+         is the maximum linear velocity of the rotation: U = omega * Rmax. So,
+         U = 1 in dimensionless units. The next parameter is the value of Rmax in
+         dimensionless units. This must be in agreement with the geometry of the
+         object in the provided STL file. -->
+    <rMax> 0.3 </rMax>
+</geometry>
+
+<fluid>
+    <!-- Fluid density. -->
+    <rho> 1000.0 </rho>
+    <!-- The Reynolds and Galilei numbers are used to determine the
+         kinematic viscosity of the fluid (nu), and the acceleration
+         of gravity (g), respectively. They both must be greater than
+         zero. -->
+    <!-- Reynolds Number: Re = U * L / nu. -->
+    <Re> 60000.0 </Re>
+    <!-- Galilei Number: Ga = g * L^3 / nu^2. -->
+    <Ga> 9800000000.0 </Ga>
+    <!-- Laplace Number: La = sigma * rho * L / mu^2.
+         From this, surface tension is computed in the code.
+         If La = 0, then surface tension is not included in the model. -->
+    <La> 7280000.0 </La>
+    <!-- Contact angle in degrees. If the contact angle is negative, then the
+         contact angle algorithm is deactivated. For non-wetting cases use
+         a contact angle between 90 and 180 degrees. For wetting cases use
+         a contact angle between 0 and 90 degrees. -->
+    <contactAngle> -1.0 </contactAngle>
+</fluid>
+
+<numerics>
+    <!-- Total number of lattice nodes in the unit length. -->
+    <resolution> 128 </resolution>
+    <!-- Lattice velocity: dt / dx. -->
+    <uLB> 0.002 </uLB>
+    <!-- Maximum number of iterations. -->
+    <maxIter> 1000000 </maxIter>
+    <!-- Iterations for the immersed boundary method. -->
+    <ibIter> 4 </ibIter>
+    <!-- Number of initial iterations for smoothly increasing the angular velocity. -->
+    <startIter> 5000 </startIter>
+    <!-- Smagorinsky LES model parameter. -->
+    <cSmago> 0.14 </cSmago>
+    <!-- Axis of rotation of the solid object. -->
+    <rotationAxis> 0.0 1.0 0.0 </rotationAxis>
+    <!-- Point on the axis of rotation. -->
+    <rotationAxisPoint> 0.5 0.5 0.65 </rotationAxisPoint>
+    <!-- Use a model where bubbles have an internal pressure relative to their volume, or not. -->
+    <useBubblePressureModel> false </useBubblePressureModel>
+    <!-- If a bubble pressure model is used freeze the ambient space or not. -->
+    <freezeLargestBubble> true </freezeLargestBubble>
+    <!-- Parameter of the bubble pressure model. The bubbleVolumeRatio must be >= 1.0. -->
+    <bubbleVolumeRatio> 1.2 </bubbleVolumeRatio>
+    <!-- Parameters of the bubble pressure model:
+         If alpha or beta < 0 then: bubble_pressure = reference_pressure * reference_volume / current_volume.
+         Else: bubble_pressure = reference_pressure * [1 + alpha * (1 - current_volume/reference_volume)^beta].
+    -->
+    <alpha> -1.0 </alpha>
+    <beta> -1.0 </beta>
+</numerics>
+
+<output>
+    <!-- Number of iterations for terminal output. -->
+    <statIter> 20 </statIter>
+    <!-- Number of iterations for disk output. -->
+    <outIter> 200 </outIter>
+</output>
+
