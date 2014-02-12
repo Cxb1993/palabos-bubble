@@ -1,3 +1,12 @@
+# General files
 *.o
 palabos/lib
 *.pyc
+
+# Files from custom examples
+*.sconsign.dblite
+src/damBreak/damBreak
+src/fallingDroplet/fallingDroplet
+src/fallingJet/fallingJet
+src/movingObject/movingObject
+src/risingBubble/risingBubble
