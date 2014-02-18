@@ -48,6 +48,7 @@ struct SimulationParameters {
     T lx, ly, lz;                                   // Geometric parameters.
     T fluidPoolHeight;
     Array<T,3> sphereCenter;
+    Array<T,3> sphereCenter2;
     T sphereRadius;
 
     T rho;                                          // Material parameters.
@@ -67,6 +68,7 @@ struct SimulationParameters {
 
     plint statIter;                                 // Output parameters.
     plint outIter;
+    bool writeVTK;
 
     /*
      * Parameters NOT set by the user.
@@ -76,6 +78,7 @@ struct SimulationParameters {
     T dt;
     plint nx, ny, nz;
     Array<T,3> sphereCenter_LB;
+    Array<T,3> sphereCenter_LB2;
     T sphereRadius_LB;
     T fluidPoolHeight_LB;
     Array<T,3> initialVelocity_LB;
@@ -106,6 +109,13 @@ void readUserDefinedSimulationParameters(std::string xmlInputFileName, Simulatio
     param.sphereCenter[2] = sphereCenter[2];
     document["geometry"]["sphere"]["radius"].read(param.sphereRadius);
 
+    sphereCenter.clear();
+    document["geometry"]["sphere"]["secondCenter"].read(sphereCenter);
+    PLB_ASSERT(sphereCenter.size() == 3);
+    param.sphereCenter2[0] = sphereCenter[0];
+    param.sphereCenter2[1] = sphereCenter[1];
+    param.sphereCenter2[2] = sphereCenter[2];
+
     document["fluid"]["rho"].read(param.rho);
     document["fluid"]["Re"].read(param.Re);
     document["fluid"]["Ga"].read(param.Ga);
@@ -126,6 +136,7 @@ void readUserDefinedSimulationParameters(std::string xmlInputFileName, Simulatio
 
     document["output"]["statIter"].read(param.statIter);
     document["output"]["outIter"].read(param.outIter);
+    document["output"]["writeVTK"].read(param.writeVTK);
 }
 
 void calculateDerivedSimulationParameters(SimulationParameters& param)
@@ -142,6 +153,7 @@ void calculateDerivedSimulationParameters(SimulationParameters& param)
     param.nz = util::roundToInt(param.lz / param.dx);
 
     param.sphereCenter_LB = (1.0 / param.dx) * param.sphereCenter;
+    param.sphereCenter_LB2 = (1.0 / param.dx) * param.sphereCenter2;
     param.sphereRadius_LB = (1.0 / param.dx) * param.sphereRadius;
     param.fluidPoolHeight_LB = (1.0 / param.dx) * param.fluidPoolHeight;
 
@@ -214,6 +226,9 @@ void printSimulationParameters(SimulationParameters const& param)
     pcout << "sphereCenter_LB = (" << param.sphereCenter_LB[0] << ", "
                                    << param.sphereCenter_LB[1] << ", "
                                    << param.sphereCenter_LB[2] << ")" << std::endl;
+    pcout << "sphereCenter_LB2 = (" << param.sphereCenter_LB2[0] << ", "
+                                   << param.sphereCenter_LB2[1] << ", "
+                                   << param.sphereCenter_LB2[2] << ")" << std::endl;
     pcout << "sphereRadius_LB = " << param.sphereRadius_LB << std::endl;
     pcout << "initialVelocity_LB = (" << param.initialVelocity_LB[0] << ", "
                                       << param.initialVelocity_LB[1] << ", "
@@ -230,8 +245,10 @@ void printSimulationParameters(SimulationParameters const& param)
 bool insideSphere(T x, T y, T z)
 {
     Array<T,3> pos(x, y, z);
+
     T r = norm<T,3>(pos - param.sphereCenter_LB);
-    if (r <= param.sphereRadius_LB) {
+    T r2 = norm<T,3>(pos - param.sphereCenter_LB2);
+    if (r <= param.sphereRadius_LB || r2 <= param.sphereRadius_LB) {
         return true;
     }
     return false;
@@ -263,7 +280,7 @@ int initialFluidFlags(plint iX, plint iY, plint iZ)
     return twoPhaseFlag::empty;
 }
 
-void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<plint> *tagMatrix, plint iT)
+void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<plint> *tagMatrix, plint iT, bool writeVTK)
 {
     std::auto_ptr<MultiScalarField3D<T> > smoothVF(lbmSmoothen<T,DESCRIPTOR>(fields->volumeFraction,
                 fields->volumeFraction.getBoundingBox()));
@@ -287,18 +304,21 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
         triangleSet.writeBinarySTL(createFileName(outDir + "interface_", iT, PADDING)+".stl");
     }
 
-    // T coef = 1.0 / 3.0;
-    VtkImageOutput3D<T> vtkOut(createFileName(outDir + "volumeData_", iT, PADDING), param.dx);
-    std::auto_ptr<MultiTensorField3D<T,3> > v = computeVelocity(fields->lattice);
-    std::auto_ptr<MultiScalarField3D<T> > rho = computeDensity(fields->lattice);
-    vtkOut.writeData<3,float>(*v, "velocity", param.dx / param.dt);
-    //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
-    vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
-    vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
-    //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
-    //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
-    if (tagMatrix != 0) {
-        vtkOut.writeData<float>(*copyConvert<plint,double>(*tagMatrix), "bubbleTags", 1.0);
+    if (writeVTK)
+    {
+        // T coef = 1.0 / 3.0;
+        VtkImageOutput3D<T> vtkOut(createFileName(outDir + "volumeData_", iT, PADDING), param.dx);
+        std::auto_ptr<MultiTensorField3D<T,3> > v = computeVelocity(fields->lattice);
+        std::auto_ptr<MultiScalarField3D<T> > rho = computeDensity(fields->lattice);
+        vtkOut.writeData<3,float>(*v, "velocity", param.dx / param.dt);
+        //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
+        vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
+        vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
+        //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
+        //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
+        if (tagMatrix != 0) {
+            vtkOut.writeData<float>(*copyConvert<plint,double>(*tagMatrix), "bubbleTags", 1.0);
+        }
     }
 }
 
@@ -366,6 +386,16 @@ int main(int argc, char **argv)
     applyProcessingFunctional(new ConstantIniVelocityFreeSurface3D<T,DESCRIPTOR>(param.initialVelocity_LB, param.rho_LB),
         iniVelBox, fields.twoPhaseArgs);
 
+    bx0 = util::roundToInt(param.sphereCenter_LB2[0]) - util::roundToInt(param.sphereRadius_LB) - 2;
+    bx1 = util::roundToInt(param.sphereCenter_LB2[0]) + util::roundToInt(param.sphereRadius_LB) + 2;
+    by0 = util::roundToInt(param.sphereCenter_LB2[1]) - util::roundToInt(param.sphereRadius_LB) - 2;
+    by1 = util::roundToInt(param.sphereCenter_LB2[1]) + util::roundToInt(param.sphereRadius_LB) + 2;
+    bz0 = util::roundToInt(param.sphereCenter_LB2[2]) - util::roundToInt(param.sphereRadius_LB) - 2;
+    bz1 = util::roundToInt(param.sphereCenter_LB2[2]) + util::roundToInt(param.sphereRadius_LB) + 2;
+    Box3D iniVelBox2(bx0, bx1, by0, by1, bz0, bz1);
+    applyProcessingFunctional(new ConstantIniVelocityFreeSurface3D<T,DESCRIPTOR>(param.initialVelocity_LB, param.rho_LB),
+        iniVelBox2, fields.twoPhaseArgs);
+
     plint iniIter = 0;
 
     BubbleMatch3D *bubbleMatch = 0;
@@ -404,9 +434,9 @@ int main(int argc, char **argv)
             pcout << "Writing results at iteration " << iT << ", t = " << iT * param.dt << std::endl;
             global::timer("images").restart();
             if (param.useBubblePressureModel) {
-                writeResults(&fields, bubbleMatch->getTagMatrix(), iT);
+                writeResults(&fields, bubbleMatch->getTagMatrix(), iT, param.writeVTK);
             } else {
-                writeResults(&fields, 0, iT);
+                writeResults(&fields, 0, iT, param.writeVTK);
             }
             global::timer("images").stop();
             pcout << "Time spent for writing results: " << global::timer("images").getTime() << std::endl;

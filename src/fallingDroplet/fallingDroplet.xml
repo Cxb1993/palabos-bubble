@@ -86,5 +86,6 @@
     <statIter> 20 </statIter>
     <!-- Number of iterations for disk output. -->
     <outIter> 20 </outIter>
+    <writeVTK> true </writeVTK>
 </output>
 
