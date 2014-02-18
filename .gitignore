@@ -10,3 +10,5 @@ src/fallingDroplet/fallingDroplet
 src/fallingJet/fallingJet
 src/movingObject/movingObject
 src/risingBubble/risingBubble
+
+src/*/tmp*
