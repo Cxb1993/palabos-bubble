@@ -83,8 +83,8 @@ SConsArgs = palabosRoot=$(palabosRoot) \
             libraries="$(libraries)"
 
 compile:
-	python $(SCons) $(SConsArgs)
+	python2 $(SCons) $(SConsArgs)
 
 clean:
-	python $(SCons) -c $(SConsArgs)
+	python2 $(SCons) -c $(SConsArgs)
 	/bin/rm -vf `find $(palabosRoot) -name '*~'`
