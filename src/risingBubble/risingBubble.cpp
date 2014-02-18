@@ -66,6 +66,8 @@ struct SimulationParameters {
     plint statIter;                                 // Output parameters.
     plint outIter;
 
+    bool writeVTK;
+
     /*
      * Parameters NOT set by the user.
      */
@@ -121,6 +123,7 @@ void readUserDefinedSimulationParameters(std::string xmlInputFileName, Simulatio
 
     document["output"]["statIter"].read(param.statIter);
     document["output"]["outIter"].read(param.outIter);
+    document["output"]["writeVTK"].read(param.writeVTK);
 }
 
 void calculateDerivedSimulationParameters(SimulationParameters& param)
@@ -235,7 +238,7 @@ int initialFluidFlags(plint iX, plint iY, plint iZ)
     return twoPhaseFlag::empty;
 }
 
-void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<plint> *tagMatrix, plint iT)
+void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<plint> *tagMatrix, plint iT, bool writeVTK)
 {
     std::auto_ptr<MultiScalarField3D<T> > smoothVF(lbmSmoothen<T,DESCRIPTOR>(fields->volumeFraction,
                 fields->volumeFraction.getBoundingBox()));
@@ -259,17 +262,20 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
         triangleSet.writeBinarySTL(createFileName(outDir + "interface_", iT, PADDING)+".stl");
     }
 
-    //T coef = 1.0 / 3.0;
-    VtkImageOutput3D<T> vtkOut(createFileName(outDir + "volumeData_", iT, PADDING), param.dx);
-    std::auto_ptr<MultiTensorField3D<T,3> > v = computeVelocity(fields->lattice);
-    std::auto_ptr<MultiScalarField3D<T> > rho = computeDensity(fields->lattice);
-    vtkOut.writeData<3,float>(*v, "velocity", param.dx / param.dt);
-    //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
-    vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
-    vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
-    //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
-    //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
-    vtkOut.writeData<float>(*copyConvert<plint,double>(*tagMatrix), "bubbleTags", 1.0);
+    if (writeVTK)
+    {
+        //T coef = 1.0 / 3.0;
+        VtkImageOutput3D<T> vtkOut(createFileName(outDir + "volumeData_", iT, PADDING), param.dx);
+        std::auto_ptr<MultiTensorField3D<T,3> > v = computeVelocity(fields->lattice);
+        std::auto_ptr<MultiScalarField3D<T> > rho = computeDensity(fields->lattice);
+        vtkOut.writeData<3,float>(*v, "velocity", param.dx / param.dt);
+        //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
+        vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
+        vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
+        //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
+        //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
+        vtkOut.writeData<float>(*copyConvert<plint,double>(*tagMatrix), "bubbleTags", 1.0);
+    }
 }
 
 
@@ -357,7 +363,7 @@ int main(int argc, char **argv)
         if (iT % param.outIter == 0 || iT == param.maxIter-1) {
             pcout << "Writing results at iteration " << iT << ", t = " << iT * param.dt << std::endl;
             global::timer("images").restart();
-            writeResults(&fields, bubbleMatch.getTagMatrix(), iT);
+            writeResults(&fields, bubbleMatch.getTagMatrix(), iT, param.writeVTK);
             global::timer("images").stop();
             pcout << "Time spent for writing results: " << global::timer("images").getTime() << std::endl;
             pcout << std::endl;

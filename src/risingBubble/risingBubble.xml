@@ -42,9 +42,9 @@
 
 <numerics>
     <!-- Total number of lattice nodes in the unit length. -->
-    <resolution> 49 </resolution>
+    <resolution> 89 </resolution>
     <!-- Lattice velocity: dt / dx. -->
-    <uLB> 0.027 </uLB>
+    <uLB> 0.0495 </uLB>
     <!-- Maximum number of iterations. -->
     <maxIter> 1000000 </maxIter>
     <!-- Smagorinsky LES model parameter. -->
@@ -67,5 +67,6 @@
     <statIter> 10 </statIter>
     <!-- Number of iterations for disk output. -->
     <outIter> 10 </outIter>
+    <writeVTK> false </writeVTK>
 </output>
 
