@@ -8,7 +8,7 @@
     <simulationDomain>
         <lx> 6.0 </lx>
         <ly> 6.0 </ly>
-        <lz> 10.0 </lz>
+        <lz> 25.0 </lz>
     </simulationDomain>
     <!-- The radius of the orifice from which the water jet emerges. -->
     <radius> 1.0 </radius>
@@ -18,7 +18,7 @@
     <!-- The initial "height" of the water in the orifice. -->
     <initialFluidHeight> 0.9 </initialFluidHeight>
     <!-- The initial height of the water in the water pool beneath the orifice. -->
-    <waterPoolHeight> 5.0 </waterPoolHeight>
+    <waterPoolHeight> 20.0 </waterPoolHeight>
 </geometry>
 
 <fluid>
@@ -45,13 +45,13 @@
     <!-- Inlet jet velocity at the orifice. -->
     <inletVelocity> 1.0 </inletVelocity>
     <!-- Maximum number of iterations. -->
-    <maxIter> 1000000 </maxIter>
+    <maxIter> 20000 </maxIter>
     <!-- Smagorinsky LES model parameter. -->
     <cSmago> 0.22 </cSmago>
     <!-- Use a model where bubbles have an internal pressure relative to their volume, or not. -->
     <useBubblePressureModel> true </useBubblePressureModel>
     <!-- Parameter of the bubble pressure model. The bubbleVolumeRatio must be >= 1.0. -->
-    <bubbleVolumeRatio> 1.0 </bubbleVolumeRatio>
+    <bubbleVolumeRatio> 1.5 </bubbleVolumeRatio>
     <!-- Parameters of the bubble pressure model:
          If alpha or beta < 0 then: bubble_pressure = reference_pressure * reference_volume / current_volume.
          Else: bubble_pressure = reference_pressure * [1 + alpha * (1 - current_volume/reference_volume)^beta].
