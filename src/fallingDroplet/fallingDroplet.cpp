@@ -428,6 +428,7 @@ int main(int argc, char **argv)
                 global::timer("iteration").reset();
             }
             pcout << std::endl;
+            fields.lattice.toggleInternalStatistics(false);
         }
 
         if (iT % param.outIter == 0 || iT == param.maxIter-1) {
@@ -441,6 +442,12 @@ int main(int argc, char **argv)
             global::timer("images").stop();
             pcout << "Time spent for writing results: " << global::timer("images").getTime() << std::endl;
             pcout << std::endl;
+            fields.lattice.toggleInternalStatistics(false);
+        }
+
+        if ((iT+1) % param.statIter == 0 || (iT+1) % param.outIter == 0)
+        {
+            fields.lattice.toggleInternalStatistics(true);
         }
 
         global::timer("iteration").start();
