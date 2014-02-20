@@ -47,7 +47,7 @@
             nu = 1 (in dimensionless units) which defines the time scale. -->
     <!-- Reynolds Number: Re = U * L / nu. -->
     <!-- nu for water = .000001004 m^2/s -->
-    <Re> 3000 </Re>
+    <Re> 2000 </Re>
     <!-- Galilei Number: Ga = g * L^3 / nu^2. -->
     <!-- g = 9.81 m/s^2 -->
     <!--<Ga> 78400000000.0 </Ga>-->
@@ -70,9 +70,9 @@
     <!-- Total number of lattice nodes in the unit length. -->
     <resolution> 61 </resolution>
     <!-- Lattice velocity: dt / dx. -->
-    <uLB> 0.004 </uLB>
+    <uLB> 0.0002 </uLB>
     <!-- Maximum number of iterations. -->
-    <maxIter> 10000 </maxIter>
+    <maxIter> 30000 </maxIter>
     <!-- Smagorinsky LES model parameter. -->
     <cSmago> 0.14 </cSmago>
     <!-- Use a model where bubbles have an internal pressure relative to their volume, or not. -->
