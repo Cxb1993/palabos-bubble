@@ -34,11 +34,11 @@ SMPparallel  = false
 usePOSIX     = true
 
 # Path to external libraries (other than Palabos)
-libraryPaths =
+libraryPaths = /usr/lib
 # Path to inlude directories (other than Palabos)
-includePaths = .
+includePaths = . /usr/include
 # Dynamic and static libraries (other than Palabos)
-libraries    =
+libraries    = boost_filesystem boost_system
 
 # Compiler to use without MPI parallelism
 serialCXX    = g++

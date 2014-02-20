@@ -25,11 +25,15 @@
 #include "palabos3D.h"
 #include "palabos3D.hh"
 
+#include <boost/filesystem.hpp>
+
 #include <cstdlib>
 #include <vector>
 #include <string>
 
 using namespace plb;
+
+namespace fs = boost::filesystem;
 
 #define DESCRIPTOR descriptors::ForcedD3Q19Descriptor
 //#define DESCRIPTOR descriptors::ForcedD3Q27Descriptor
@@ -39,6 +43,8 @@ using namespace plb;
 typedef double T;
 
 std::string outDir("./tmp/");
+std::string checkpointDir(outDir + std::string("/checkpoint"));
+std::string checkpointBakDir(outDir + std::string("/checkpointBak"));
 
 struct SimulationParameters {
     /*
@@ -322,10 +328,115 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
     }
 }
 
+void
+saveState(FreeSurfaceFields3D<T, DESCRIPTOR> &fields,
+          plint iter)
+{
+    if (global::mpi().isMainProcessor())
+    {
+        fs::path cpPath(checkpointDir);
+        fs::path cpBakPath(checkpointBakDir);
+
+        // Backup the last checkpoint
+        fs::rename(cpPath, cpBakPath);
+
+        // Create a new one
+        fs::create_directory(cpPath);
+    }
+
+    std::vector<MultiBlock3D*> blocks;
+    fields.appendBlocksToCheckpointVector(blocks);
+
+    // Write the blocks
+    for (uint i = 0; i < blocks.size(); ++i)
+    {
+        std::ostringstream os;
+        os << "/block-" << i << ".dat";
+
+        saveBinaryBlock(*blocks[i], checkpointDir + os.str());
+    }
+
+    // Write the checkpoint iter
+    std::string iterFile(checkpointDir + std::string("/iter"));
+    plb_ofstream of(iterFile.c_str());
+    of << iter;
+}
+
+plint
+loadState(FreeSurfaceFields3D<T, DESCRIPTOR> &fields)
+{
+    // If state exists in tmp directory, load it
+    fs::path cpPath(checkpointDir);
+    int status = (int)fs::is_directory(cpPath);
+    global::mpi().bCast(&status, 1);
+    if ( !status )
+    {
+        return 0;
+    }
+
+    std::vector<MultiBlock3D*> blocks;
+    fields.appendBlocksToCheckpointVector(blocks);
+
+    if (global::mpi().isMainProcessor())
+    {
+        // Make sure all the blocks are there
+        for (uint i = 0; i < blocks.size(); ++i)
+        {
+            std::ostringstream os;
+            os << "/block-" << i << ".dat";
+
+            fs::path p(checkpointDir + os.str());
+            if ( !fs::exists(p) )
+            {
+                status = 0;
+            }
+        }
+    }
+
+    global::mpi().bCast(&status, 1);
+    if ( !status )
+    {
+        return 0;
+    }
+
+    // Make sure the iter file is there
+    fs::path iterFile(checkpointDir + std::string("/iter"));
+    status = (int)fs::exists(iterFile);
+    global::mpi().bCast(&status, 1);
+    if ( !status )
+    {
+        return 0;
+    }
+
+    // Read the blocks
+    for (uint i = 0; i < blocks.size(); ++i)
+    {
+        std::ostringstream os;
+        os << "/block-" << i << ".dat";
+
+        loadBinaryBlock(*blocks[i], checkpointDir + os.str());
+    }
+
+    // Read the checkpoint iter
+    plint iter;
+    plb_ifstream in(iterFile.c_str());
+    in >> iter;
+    global::mpi().bCast(&iter, 1);
+
+    return iter;
+}
+
 
 int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
+
+    // Create directories if they don't exist
+    if (global::mpi().isMainProcessor())
+    {
+        fs::path outputDir(outDir);
+        boost::filesystem::create_directory(outputDir);
+    }
 
     std::cout.precision(10);
     std::scientific(std::cout);
