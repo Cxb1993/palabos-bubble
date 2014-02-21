@@ -282,20 +282,26 @@ int initialFluidFlags(plint iX, plint iY, plint iZ)
 
 void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<plint> *tagMatrix, plint iT, bool writeVTK)
 {
+    pcout << "Writing results" << std::endl;
+    pcout << "\tSmoothing volume fraction..." << std::flush;
     std::auto_ptr<MultiScalarField3D<T> > smoothVF(lbmSmoothen<T,DESCRIPTOR>(fields->volumeFraction,
                 fields->volumeFraction.getBoundingBox()));
+
+    pcout << "done" << std::endl;
 
     std::vector<T> isoLevels;
     isoLevels.push_back(0.5);
 
     typedef TriangleSet<T>::Triangle Triangle;
     std::vector<Triangle> triangles;
+    pcout << "\tMarching cubes smooth..." << std::flush;
     isoSurfaceMarchingCube(triangles, *smoothVF, isoLevels, smoothVF->getBoundingBox().enlarge(-2));
     {
         TriangleSet<T> triangleSet(triangles);
         triangleSet.scale(param.dx);
         triangleSet.writeBinarySTL(createFileName(outDir + "smoothedInterface_", iT, PADDING)+".stl");
     }
+    pcout << "done" << std::endl << "\tMarching cubes fraction..." << std::flush;
     triangles.clear();
     isoSurfaceMarchingCube(triangles, fields->volumeFraction, isoLevels, fields->volumeFraction.getBoundingBox().enlarge(-2));
     {
@@ -303,21 +309,30 @@ void writeResults(FreeSurfaceFields3D<T,DESCRIPTOR> *fields, MultiScalarField3D<
         triangleSet.scale(param.dx);
         triangleSet.writeBinarySTL(createFileName(outDir + "interface_", iT, PADDING)+".stl");
     }
+    pcout << "done" << std::endl;
 
     if (writeVTK)
     {
         // T coef = 1.0 / 3.0;
         VtkImageOutput3D<T> vtkOut(createFileName(outDir + "volumeData_", iT, PADDING), param.dx);
+        pcout << "Computing velocity..." << std::flush;
         std::auto_ptr<MultiTensorField3D<T,3> > v = computeVelocity(fields->lattice);
+        pcout << "done" << std::endl << "Computing density..." << std::flush;
         std::auto_ptr<MultiScalarField3D<T> > rho = computeDensity(fields->lattice);
+        pcout << "done" << std::endl << "Writing velocity..." << std::flush;
         vtkOut.writeData<3,float>(*v, "velocity", param.dx / param.dt);
         //vtkOut.writeData<float>(*rho, "pressure", param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
+        pcout << "done" << std::endl << "Writing volume fraction..." << std::flush;
         vtkOut.writeData<float>(fields->volumeFraction, "volumeFraction", 1.0);
+        pcout << "done" << std::endl << "Writing smoothed volume fraction..." << std::flush;
         vtkOut.writeData<float>(*smoothVF, "smoothedVolumeFraction", 1.0);
+        pcout << "done" << std::endl;
         //vtkOut.writeData<float>(fields->outsideDensity, "outsidePressure",
         //        param.rho * coef * (param.dx * param.dx) / (param.dt * param.dt));
         if (tagMatrix != 0) {
+            pcout << "Writing tags..." << std::flush;
             vtkOut.writeData<float>(*copyConvert<plint,double>(*tagMatrix), "bubbleTags", 1.0);
+            pcout << "done" << std::endl;
         }
     }
 }
@@ -428,7 +443,6 @@ int main(int argc, char **argv)
                 global::timer("iteration").reset();
             }
             pcout << std::endl;
-            fields.lattice.toggleInternalStatistics(false);
         }
 
         if (iT % param.outIter == 0 || iT == param.maxIter-1) {
@@ -442,20 +456,18 @@ int main(int argc, char **argv)
             global::timer("images").stop();
             pcout << "Time spent for writing results: " << global::timer("images").getTime() << std::endl;
             pcout << std::endl;
-            fields.lattice.toggleInternalStatistics(false);
-        }
-
-        if ((iT+1) % param.statIter == 0 || (iT+1) % param.outIter == 0)
-        {
-            fields.lattice.toggleInternalStatistics(true);
         }
 
         global::timer("iteration").start();
         if (param.useBubblePressureModel) {
             T bubbleVolumeRatio = iT == 0 ? 1.0 : param.bubbleVolumeRatio;
+            //pcout << "Starting bubble match execute...";
             bubbleMatch->execute(fields.flag, fields.volumeFraction);
+            //pcout << "done" << std::endl << "Starting bubble history transition...";
             bubbleHistory->transition(*bubbleMatch, iT, bubbleVolumeRatio);
+            //pcout << "done" << std::endl << "Starting bubble history update...";
             bubbleHistory->updateBubblePressure(fields.outsideDensity, param.rho_LB, param.alpha, param.beta);
+            //pcout << "done" << std::endl;
         }
 
         fields.lattice.executeInternalProcessors();

@@ -91,9 +91,9 @@
 
 <output>
     <!-- Number of iterations for terminal output. -->
-    <statIter> 20 </statIter>
+    <statIter> 40 </statIter>
     <!-- Number of iterations for disk output. -->
-    <outIter> 20 </outIter>
-    <writeVTK> true </writeVTK>
+    <outIter> 40 </outIter>
+    <writeVTK> false </writeVTK>
 </output>
 
